@@ -69,6 +69,7 @@ namespace MyRevitPlugin
                 Element selectedElement = doc.GetElement(selectedId);
 
                 //pegar a quantidade de teclas simples do interruptor
+                //teste git
                 var qtdSimpleSwitches = 2;
                 InsertSwitchId(selectedElement, switchIDValue);
                 CreateTagForSimpleSwitch(selectedElement, qtdSimpleSwitches);
