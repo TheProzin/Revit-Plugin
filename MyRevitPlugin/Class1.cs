@@ -69,8 +69,9 @@ namespace MyRevitPlugin
                 Element selectedElement = doc.GetElement(selectedId);
 
                 //pegar a quantidade de teclas simples do interruptor
-                //teste git
-                var qtdSimpleSwitches = 2;
+   
+                var qtdSimpleSwitches = 6;
+
                 InsertSwitchId(selectedElement, switchIDValue);
                 CreateTagForSimpleSwitch(selectedElement, qtdSimpleSwitches);
             }
@@ -119,8 +120,8 @@ namespace MyRevitPlugin
             if (selectedElement.Category.Id.Value == (int)BuiltInCategory.OST_LightingDevices)
             {
                 var zPosition = 1;
-                var xPosition = 0.22;
-                var yPosition = -0.25;
+                var xPosition = 0.45;
+                var yPosition = 0.25;
                 for (int i = 0; i < qtdTags; i++)
                 {
                     FamilyInstance familyInstance = selectedElement as FamilyInstance;
@@ -149,7 +150,17 @@ namespace MyRevitPlugin
                         TaskDialog.Show("Erro", "Não foi possível encontrar o tipo de família de tag 'Tag para Interruptor (Switch ID)'.");
                     }
 
-                    xPosition += 0.3;
+                    bool isEven = i % 2 == 0;
+                    if (!isEven)
+                    {
+                        xPosition = 0.45;
+                        yPosition += 0.45; 
+                    }
+                    else
+                    {
+                        xPosition += 0.7;
+                    }
+
                 }
 
             }
@@ -216,20 +227,38 @@ namespace MyRevitPlugin
 
         private string IncrementSwitchId(string switchId)
         {
-            char[] chars = switchId.ToCharArray();
-            char lastChar = chars.Last();
+            char lastChar = switchId.Last();
 
+            // Se o último caractere for 'z', verifica o penúltimo caractere
             if (lastChar == 'z')
-                return switchId + "'";  // Se o último caractere for "z", retorna "a'"
+            {
+                // Se o penúltimo caractere for 'z', incrementa-o para 'a' e retorna
+                if (switchId.Length > 1 && switchId[switchId.Length - 2] == 'z')
+                {
+                    return IncrementSwitchId(switchId.Substring(0, switchId.Length - 1)) + 'a';
+                }
+                // Se o penúltimo caractere for uma letra de 'a' a 'y', incrementa-o e retorna
+                else if (switchId.Length > 1 && switchId[switchId.Length - 2] >= 'a' && switchId[switchId.Length - 2] < 'z')
+                {
+                    return switchId.Remove(switchId.Length - 2) + (char)(switchId[switchId.Length - 2] + 1) + 'a';
+                }
+            }
 
-            if (lastChar == '\'')
-                return switchId + "''";  // Se o último caractere for "'", retorna "''"
+            // Se o último caractere for uma letra de 'a' a 'y', incrementa-o e retorna
+            if (lastChar >= 'a' && lastChar < 'z')
+            {
+                return switchId.Remove(switchId.Length - 1) + (char)(lastChar + 1);
+            }
 
-            char nextChar = (char)(lastChar + 1);
+            // Se o último caractere for 'z' e não houver penúltimo caractere, retorna 'a'
+            if (lastChar == 'z' && switchId.Length == 1)
+            {
+                return "aa";
+            }
 
-            chars[chars.Length - 1] = nextChar;
-
-            return new string(chars);
+            // Se o último caractere não for uma letra de 'a' a 'z', retorna uma sequência inválida
+            return "Sequência inválida";
         }
+
     }
 }
