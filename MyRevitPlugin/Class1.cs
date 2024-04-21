@@ -47,6 +47,13 @@ namespace MyRevitPlugin
     [Transaction(TransactionMode.Manual)]
     public class MyTest : IExternalCommand
     {
+        struct tagPosition
+        {
+            public double x;
+            public double y;
+            public double z;
+        }
+
         private UIApplication app;
         private UIDocument uidoc;
         private Document doc;
@@ -57,26 +64,97 @@ namespace MyRevitPlugin
             uidoc = app.ActiveUIDocument;
             doc = uidoc.Document;
 
-            foreach (ElementId selectedId in uidoc.Selection.GetElementIds())
+            try
             {
-                string switchIDValue = GetNextSwitchId();
-
-                if (string.IsNullOrEmpty(switchIDValue))
+                foreach (ElementId selectedId in uidoc.Selection.GetElementIds())
                 {
-                    TaskDialog.Show("Erro", "Não foi possível obter o próximo Switch ID.");
-                    return Result.Failed;
+                    Element selectedElement = doc.GetElement(selectedId);
+                    FamilyInstance familyInstance = selectedElement as FamilyInstance;
+
+                    if (selectedElement.Category.Name == "Lighting Devices")
+                    {
+                        var i = 0;
+                        tagPosition tagPosition = new tagPosition
+                        {
+                            x = 0.45,
+                            y = 0.25,
+                            z = 1.0
+                        };
+
+                        foreach (var subComponentId in familyInstance.GetSubComponentIds())
+                        {
+                            var subComponent = doc.GetElement(subComponentId);
+
+                            if (subComponent.Name.Contains("Módulo de Tecla Interrupor não listavel"))
+                            {
+
+                                ProcessSelectedElement(subComponent, tagPosition);
+
+                                bool isEven = i % 2 == 0;
+                                if (!isEven)
+                                {
+                                    tagPosition.x = 0.45;
+                                    tagPosition.y += 0.45;
+                                }
+                                else
+                                {
+                                    tagPosition.x += 0.7;
+                                }
+                                i++;
+                            }
+                        }
+
+                        if (i == 0)
+                        {
+                            ProcessSelectedElement(selectedElement, tagPosition);
+                        }
+                    }
+                    else
+                    {
+                        TaskDialog.Show("Erro", "O elemento selecionado não é um dispositivo de iluminação.");
+                    }
+
                 }
-                Element selectedElement = doc.GetElement(selectedId);
-
-                //pegar a quantidade de teclas simples do interruptor
-   
-                var qtdSimpleSwitches = 6;
-
-                InsertSwitchId(selectedElement, switchIDValue);
-                CreateTagForSimpleSwitch(selectedElement, qtdSimpleSwitches);
             }
+            catch (Exception e)
+            {
+                message = e.Message;
+                return Result.Failed;
+            }   
 
             return Result.Succeeded;
+        }
+
+        private void ProcessSelectedElement(Element selectedElement, tagPosition tagPosition)
+        {
+            string switchIDValue = GetNextSwitchId();
+            if (string.IsNullOrEmpty(switchIDValue))
+            {
+                TaskDialog.Show("Erro", "Não foi possível obter o próximo Switch ID.");
+                return;
+            }
+
+            FamilyInstance familyInstanceSubComponent = selectedElement as FamilyInstance;
+            LocationPoint locationPoint = familyInstanceSubComponent.Location as LocationPoint;
+            XYZ location = locationPoint.Point;
+
+            XYZ tagLocation = new XYZ(location.X + tagPosition.x, location.Y + tagPosition.y, location.Z + tagPosition.y);
+
+            InsertSwitchId(selectedElement, switchIDValue);
+            CreateTag(selectedElement, tagLocation);
+        }
+
+        private void CreateTag(Element selectedElement, XYZ tagPosition)
+        {
+            FamilySymbol tagSymbol = GetTagSymbol(847296);
+
+            using (Transaction transaction = new Transaction(doc))
+            {
+                transaction.Start("Criar Tag");
+                IndependentTag tag = IndependentTag.Create(doc, doc.ActiveView.Id, new Reference(selectedElement), false, TagMode.TM_ADDBY_CATEGORY, TagOrientation.Horizontal, tagPosition);
+                tag.ChangeTypeId(tagSymbol.Id);
+                transaction.Commit();
+            }
         }
 
         private void InsertSwitchId (Element selectedElement, string switchIDValue)
@@ -108,61 +186,6 @@ namespace MyRevitPlugin
                 {
                     TaskDialog.Show("Erro", "A propriedade Switch ID não está disponível ou é somente leitura.");
                 }
-            }
-            else
-            {
-                TaskDialog.Show("Erro", "O elemento selecionado não é um interruptor.");
-            }
-        }
-
-        private void CreateTagForSimpleSwitch(Element selectedElement, int qtdTags)
-        {
-            if (selectedElement.Category.Id.Value == (int)BuiltInCategory.OST_LightingDevices)
-            {
-                var zPosition = 1;
-                var xPosition = 0.45;
-                var yPosition = 0.25;
-                for (int i = 0; i < qtdTags; i++)
-                {
-                    FamilyInstance familyInstance = selectedElement as FamilyInstance;
-                    LocationPoint locationPoint = familyInstance.Location as LocationPoint;
-                    XYZ location = locationPoint.Point;
-
-
-                    XYZ tagLocation = new XYZ(location.X + xPosition, location.Y + yPosition, location.Z + zPosition);
-
-                    // Obtém o tipo de família de tag desejado
-                    // Pensar em outra forma alem do id de forma fixa
-                    FamilySymbol tagSymbol = GetTagSymbol(847296);
-
-                    if (tagSymbol != null)
-                    {
-                        using (Transaction transaction = new Transaction(doc))
-                        {
-                            transaction.Start("Criar Tag");
-                            IndependentTag tag = IndependentTag.Create(doc, doc.ActiveView.Id, new Reference(selectedElement), false, TagMode.TM_ADDBY_CATEGORY, TagOrientation.Horizontal, tagLocation);
-                            tag.ChangeTypeId(tagSymbol.Id);
-                            transaction.Commit();
-                        }
-                    }
-                    else
-                    {
-                        TaskDialog.Show("Erro", "Não foi possível encontrar o tipo de família de tag 'Tag para Interruptor (Switch ID)'.");
-                    }
-
-                    bool isEven = i % 2 == 0;
-                    if (!isEven)
-                    {
-                        xPosition = 0.45;
-                        yPosition += 0.45; 
-                    }
-                    else
-                    {
-                        xPosition += 0.7;
-                    }
-
-                }
-
             }
             else
             {
