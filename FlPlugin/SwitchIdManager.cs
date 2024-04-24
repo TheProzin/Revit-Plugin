@@ -12,6 +12,7 @@ namespace FlPlugin
     {
         private string GetNextSwitchId(Document doc)
         {
+            //Busca todos os elementos de categoria OST_LightingDevices que possuem a propriedade Switch ID preenchida
             FilteredElementCollector collector = new FilteredElementCollector(doc)
                 .OfCategory(BuiltInCategory.OST_LightingDevices)
                 .WhereElementIsNotElementType();
@@ -77,7 +78,7 @@ namespace FlPlugin
 
         public void InsertSwitchId(Document doc, Element selectedElement)
         {
-
+            // Verifica se o elemento selecionado é um dispositivo de iluminação
             if (selectedElement.Category.Id.Value == (int)BuiltInCategory.OST_LightingDevices)
             {
                 string switchIdValue = GetNextSwitchId(doc);

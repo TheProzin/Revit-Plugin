@@ -55,6 +55,7 @@
   <ItemGroup>
     <Compile Include="FlPlugin.cs" />
     <Compile Include="ElectricDevices.cs" />
+    <Compile Include="PanelManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SwitchIdManager.cs" />
     <Compile Include="TagManager.cs" />

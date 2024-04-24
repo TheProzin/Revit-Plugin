@@ -15,6 +15,7 @@ namespace FlPlugin
             public const int Interruptor = 847296; // Tag para Interruptor (Switch ID) //Lighting Device
             public const int Iluminacao = 2072026; // Tag de Luminária na Parede //Lighting Fixture
             public const int Tomada = 847034; // Tag N° do Circuito em Tomada //Electrical Fixture
+            public const int PotenciaTomada = 2896981; // Tag Potência do Ponto de Tomada //Electrical Fixture
         }
 
         public static FamilySymbol GetTagSymbolLightingFixture(Document doc, int tagId)
@@ -70,13 +71,14 @@ namespace FlPlugin
             {
                 tagSymbol = GetTagSymbolLightingFixture(doc, idTagSymbol);
 
-            } else if (idTagSymbol == TagsId.Tomada)
+            } else if (idTagSymbol == TagsId.Tomada || idTagSymbol == TagsId.PotenciaTomada)
             {
                 tagSymbol = GetTagSymbolElectricalFixture(doc, idTagSymbol);
 
             } else if (idTagSymbol == TagsId.Interruptor)
             {
                 tagSymbol = GetTagSymbolLightingDevice(doc, idTagSymbol);
+
             }
 
             if (tagSymbol == null)

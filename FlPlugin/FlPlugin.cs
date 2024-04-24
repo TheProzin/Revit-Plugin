@@ -23,22 +23,10 @@ namespace FlPlugin
 
         public Result OnStartup(UIControlledApplication application)
         {
-            RibbonPanel ribbonPanel = application.CreateRibbonPanel("FL Plugin");
-
-            string thisAssemblyPath = Assembly.GetExecutingAssembly().Location;
-
-            PushButtonData buttonData = new PushButtonData("cmdHelloWorld",
-                               "Electrical Tags", thisAssemblyPath, "FlPlugin.ElectricalTags");
-
-            PushButton pushButton = ribbonPanel.AddItem(buttonData) as PushButton;
-            pushButton.ToolTip = "Automatic insert tags for eletrical devices.";
-            pushButton.LongDescription = "Automatic insert tags for eletrical devices.";
-            
-            Uri uriImage = new Uri("C:\\Users\\telle\\OneDrive\\Documents\\Projetos\\FlPlugin\\FlPlugin\\Resources\\hello.png");
-            pushButton.LargeImage = new BitmapImage(uriImage);
+            PanelManager panelManager = new PanelManager();
+            panelManager.CreatePanel(application);
 
             return Result.Succeeded;
-
         }
 
     }
@@ -59,15 +47,9 @@ namespace FlPlugin
 
             try
             {
+                ICollection<ElementId> selectedElements = uidoc.Selection.GetElementIds();
                 ElectricDevices electricDevices = new ElectricDevices();
-                foreach (ElementId selectedId in uidoc.Selection.GetElementIds())
-                {
-                    Element selectedElement = doc.GetElement(selectedId);
-                    FamilyInstance familyInstance = selectedElement as FamilyInstance;
-
-                    electricDevices.ProcessGroupCategory(doc, familyInstance);
-
-                }
+                electricDevices.ProcessElements(doc, selectedElements);
             }
             catch (Exception e)
             {
