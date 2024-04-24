@@ -44,8 +44,10 @@ namespace FlPlugin
             //para o conjunto, verifica os subcomponentes e insere as tags
             FamilyInstance familyInstance = selectedElement as FamilyInstance;
 
+            ElectricDevices ElectricDevices = new ElectricDevices();
+
             var i = 0;
-            TagPosition lightingTagPosition = new TagPosition
+            TagXYZ tagPosition = new TagXYZ
             {
                 x = 0.45,
                 y = 0.25,
@@ -61,34 +63,26 @@ namespace FlPlugin
                 if (subComponent.Name.Contains("Módulo de Tecla Interrupor não listavel"))
                 {
 
-                    (new ElectricDevices()).ProcessLightingDeviceElementCategory(doc, subComponent, lightingTagPosition);
+                    ElectricDevices.ProcessLightingDeviceElementCategory(doc, subComponent, tagPosition);
 
                     bool isEven = i % 2 == 0;
                     if (!isEven)
                     {
-                        lightingTagPosition.x = 0.45;
-                        lightingTagPosition.y += 0.45;
+                        tagPosition.x = 0.45;
+                        tagPosition.y += 0.45;
                     }
                     else
                     {
-                        lightingTagPosition.x += 0.7;
+                        tagPosition.x += 0.7;
                     }
                     i++;
-                }
-
-                //Se o subcomponente for um módulo de tomada não listável, insere a tag
-                if (subComponent.Name.Contains("Módulo de Tomada não listavel"))
-                {
-
-                    (new ElectricDevices()).ProcessElectricalFixtureElementCategory(doc, subComponent, lightingTagPosition);
-
                 }
             }
 
             //Se não houver subcomponentes, insere a tag no conjunto pois provavelmente é um módulo de interruptor
             if (i == 0)
             {
-                (new ElectricDevices()).ProcessLightingDeviceElementCategory(doc, selectedElement, lightingTagPosition);
+                ElectricDevices.ProcessLightingDeviceElementCategory(doc, selectedElement, tagPosition);
             }
         }
 
@@ -96,13 +90,13 @@ namespace FlPlugin
         {
             //para o conjunto insere as tags
 
-            TagPosition lightingTagPosition = new TagPosition
+            TagXYZ tagPosition = new TagXYZ
             {
-                x = 0.45,
+                x = 0.5,
                 y = 0.25,
                 z = 1.0
             };
-            (new ElectricDevices()).ProcessLightingFixtureElementCategory(doc, selectedElement, lightingTagPosition);
+            (new ElectricDevices()).ProcessLightingFixtureElementCategory(doc, selectedElement, tagPosition);
         }
 
         private void ProcessElectricalFixtureGroupCategory(Document doc, Element selectedElement)
@@ -111,11 +105,21 @@ namespace FlPlugin
 
             FamilyInstance familyInstance = selectedElement as FamilyInstance;
 
-            var i = 0;
-            TagPosition lightingTagPosition = new TagPosition
+            ElectricDevices ElectricDevices = new ElectricDevices();
+
+            var iLighting = 0;
+            var iElectrical = 0;
+            TagXYZ tagPositionLighting = new TagXYZ
             {
-                x = 0.45,
+                x = 0.7,
                 y = 0.25,
+                z = 1.0
+            };
+
+            TagXYZ tagPositionElectrical = new TagXYZ
+            {
+                x = -0.8,
+                y = 0.1,
                 z = 1.0
             };
 
@@ -128,38 +132,46 @@ namespace FlPlugin
                 if (subComponent.Name.Contains("Módulo de Tecla Interrupor não listavel"))
                 {
 
-                    (new ElectricDevices()).ProcessLightingDeviceElementCategory(doc, subComponent, lightingTagPosition);
+                    ElectricDevices.ProcessLightingDeviceElementCategory(doc, subComponent, tagPositionLighting);
 
-                    bool isEven = i % 2 == 0;
+                    bool isEven = iLighting % 2 == 0;
                     if (!isEven)
                     {
-                        lightingTagPosition.x = 0.45;
-                        lightingTagPosition.y += 0.45;
+                        tagPositionLighting.x = 0.7;
+                        tagPositionLighting.y += 0.45;
                     }
                     else
                     {
-                        lightingTagPosition.x += 0.7;
+                        tagPositionLighting.x += 0.45;
                     }
-                    i++;
+                    iLighting++;
                 }
 
                 //Se o subcomponente for um módulo de tomada não listável, insere a tag
                 if (subComponent.Name.Contains("Módulo de Tomada não listavel"))
                 {
-
-                    (new ElectricDevices()).ProcessElectricalFixtureElementCategory(doc, subComponent, lightingTagPosition);
-                    i++;
+                    ElectricDevices.ProcessElectricalFixtureElementCategory(doc, subComponent, tagPositionElectrical);
+                    if (iElectrical == 2)
+                    {
+                        tagPositionElectrical.x = -1.6;
+                        tagPositionElectrical.y = 0.1;
+                    }
+                    else
+                    {
+                        tagPositionElectrical.y += 0.45;
+                    }
+                    iElectrical++;
                 }
             }
 
             //Se não houver subcomponentes, insere a tag no conjunto, poir provavelmente é um módulo de tomada
-            if (i == 0)
+            if (iElectrical == 0)
             {
-                (new ElectricDevices()).ProcessElectricalFixtureElementCategory(doc, selectedElement, lightingTagPosition);
+                ElectricDevices.ProcessElectricalFixtureElementCategory(doc, selectedElement, tagPositionElectrical);
             }
         }
 
-        private void ProcessLightingDeviceElementCategory(Document doc, Element selectedElement, TagPosition tagPosition)
+        private void ProcessLightingDeviceElementCategory(Document doc, Element selectedElement, TagXYZ tagPosition)
         {
             FamilyInstance familyInstanceSubComponent = selectedElement as FamilyInstance;
             LocationPoint locationPoint = familyInstanceSubComponent.Location as LocationPoint;
@@ -170,7 +182,7 @@ namespace FlPlugin
             TagManager.CreateTag(doc, selectedElement, tagLocation, TagManager.TagsId.Interruptor);
         }
 
-        private void ProcessLightingFixtureElementCategory(Document doc, Element selectedElement, TagPosition tagPosition)
+        private void ProcessLightingFixtureElementCategory(Document doc, Element selectedElement, TagXYZ tagPosition)
         {
             FamilyInstance familyInstanceSubComponent = selectedElement as FamilyInstance;
             LocationPoint locationPoint = familyInstanceSubComponent.Location as LocationPoint;
@@ -180,12 +192,14 @@ namespace FlPlugin
             TagManager.CreateTag(doc, selectedElement, tagLocation, TagManager.TagsId.Iluminacao);
         }
 
-        private void ProcessElectricalFixtureElementCategory(Document doc, Element selectedElement, TagPosition tagPosition)
+        private void ProcessElectricalFixtureElementCategory(Document doc, Element selectedElement, TagXYZ tagPosition)
         {
             FamilyInstance familyInstanceSubComponent = selectedElement as FamilyInstance;
             LocationPoint locationPoint = familyInstanceSubComponent.Location as LocationPoint;
             XYZ location = locationPoint.Point;
             XYZ tagLocation = new XYZ(location.X + tagPosition.x, location.Y + tagPosition.y, location.Z + tagPosition.y);
+
+            TagManager.CreateTag(doc, selectedElement, tagLocation, TagManager.TagsId.Tomada);
 
             IList<Parameter> socketPotency = familyInstanceSubComponent.GetParameters("Potência Aparente (VA)");
 
@@ -196,11 +210,12 @@ namespace FlPlugin
 
                 if (potency.AsValueString() != "100 VA")
                 {
-                    TagManager.CreateTag(doc, selectedElement, tagLocation, TagManager.TagsId.PotenciaTomada);
+                    tagPosition.y += 0.45;
+                    XYZ tagLocationPotency = new XYZ(location.X + tagPosition.x, location.Y + tagPosition.y, location.Z + tagPosition.y);
+                    TagManager.CreateTag(doc, selectedElement, tagLocationPotency, TagManager.TagsId.PotenciaTomada);
                 }
             }
 
-            TagManager.CreateTag(doc, selectedElement, tagLocation, TagManager.TagsId.Tomada);
         }
 
     }

@@ -1,6 +1,6 @@
 ﻿namespace FlPlugin
 {
-    public struct TagPosition
+    public struct TagXYZ
     {
         public double x;
         public double y;
