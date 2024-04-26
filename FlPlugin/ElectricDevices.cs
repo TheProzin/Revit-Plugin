@@ -47,10 +47,10 @@ namespace FlPlugin
             ElectricDevices ElectricDevices = new ElectricDevices();
 
             var i = 0;
-            TagXYZ tagPosition = new TagXYZ
+            TagXYZ tagPositionLighting = new TagXYZ
             {
-                x = 0.45,
-                y = 0.25,
+                x = 1,
+                y = 0.2,
                 z = 1.0
             };
 
@@ -63,17 +63,16 @@ namespace FlPlugin
                 if (subComponent.Name.Contains("Módulo de Tecla Interrupor não listavel"))
                 {
 
-                    ElectricDevices.ProcessLightingDeviceElementCategory(doc, subComponent, tagPosition);
+                    ElectricDevices.ProcessLightingDeviceElementCategory(doc, subComponent, tagPositionLighting);
 
-                    bool isEven = i % 2 == 0;
-                    if (!isEven)
+                    if (i == 2)
                     {
-                        tagPosition.x = 0.45;
-                        tagPosition.y += 0.45;
+                        tagPositionLighting.x = 1;
+                        tagPositionLighting.y = 0.2;
                     }
                     else
                     {
-                        tagPosition.x += 0.7;
+                        tagPositionLighting.y += 0.45;
                     }
                     i++;
                 }
@@ -82,7 +81,7 @@ namespace FlPlugin
             //Se não houver subcomponentes, insere a tag no conjunto pois provavelmente é um módulo de interruptor
             if (i == 0)
             {
-                ElectricDevices.ProcessLightingDeviceElementCategory(doc, selectedElement, tagPosition);
+                ElectricDevices.ProcessLightingDeviceElementCategory(doc, selectedElement, tagPositionLighting);
             }
         }
 
@@ -92,7 +91,7 @@ namespace FlPlugin
 
             TagXYZ tagPosition = new TagXYZ
             {
-                x = 0.5,
+                x = 0.6,
                 y = 0.25,
                 z = 1.0
             };
@@ -111,15 +110,15 @@ namespace FlPlugin
             var iElectrical = 0;
             TagXYZ tagPositionLighting = new TagXYZ
             {
-                x = 0.7,
-                y = 0.25,
+                x = 0.8,
+                y = 0.2,
                 z = 1.0
             };
 
             TagXYZ tagPositionElectrical = new TagXYZ
             {
-                x = -0.8,
-                y = 0.1,
+                x = -1.2,
+                y = 0.2,
                 z = 1.0
             };
 
@@ -134,15 +133,14 @@ namespace FlPlugin
 
                     ElectricDevices.ProcessLightingDeviceElementCategory(doc, subComponent, tagPositionLighting);
 
-                    bool isEven = iLighting % 2 == 0;
-                    if (!isEven)
+                    if (iLighting == 2)
                     {
-                        tagPositionLighting.x = 0.7;
-                        tagPositionLighting.y += 0.45;
+                        tagPositionLighting.x = 1;
+                        tagPositionLighting.y = 0.2;
                     }
                     else
                     {
-                        tagPositionLighting.x += 0.45;
+                        tagPositionLighting.y += 0.45;
                     }
                     iLighting++;
                 }
@@ -153,8 +151,8 @@ namespace FlPlugin
                     ElectricDevices.ProcessElectricalFixtureElementCategory(doc, subComponent, tagPositionElectrical);
                     if (iElectrical == 2)
                     {
-                        tagPositionElectrical.x = -1.6;
-                        tagPositionElectrical.y = 0.1;
+                        tagPositionElectrical.x = -1;
+                        tagPositionElectrical.y = 0.2;
                     }
                     else
                     {
@@ -210,7 +208,7 @@ namespace FlPlugin
 
                 if (potency.AsValueString() != "100 VA")
                 {
-                    tagPosition.y += 0.45;
+                    tagPosition.x -= 0.8;
                     XYZ tagLocationPotency = new XYZ(location.X + tagPosition.x, location.Y + tagPosition.y, location.Z + tagPosition.y);
                     TagManager.CreateTag(doc, selectedElement, tagLocationPotency, TagManager.TagsId.PotenciaTomada);
                 }
